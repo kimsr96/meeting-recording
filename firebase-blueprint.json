@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information for F&B Insight Log.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string", "format": "uri" },
+        "role": { "type": "string", "enum": ["admin", "manager", "staff"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Meeting": {
+      "title": "Meeting",
+      "description": "Recorded meeting session and its AI analysis.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "duration": { "type": "number", "description": "Duration in seconds" },
+        "transcript": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "speaker": { "type": "string" },
+              "text": { "type": "string" },
+              "timestamp": { "type": "number" }
+            }
+          }
+        },
+        "summary": { "type": "string" },
+        "insights": {
+          "type": "object",
+          "properties": {
+            "customerFeedback": { "type": "string" },
+            "decisions": { "type": "array", "items": { "type": "string" } },
+            "actionItems": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "createdBy": { "type": "string", "description": "UID of the creator" },
+        "status": { "type": "string", "enum": ["recording", "analyzing", "completed"] }
+      },
+      "required": ["title", "date", "createdBy"]
+    },
+    "ActionItem": {
+      "title": "Action Item",
+      "description": "Specific task derived from a meeting.",
+      "type": "object",
+      "properties": {
+        "meetingId": { "type": "string" },
+        "task": { "type": "string" },
+        "assignee": { "type": "string", "description": "Email or Name" },
+        "dueDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["pending", "in-progress", "completed"] },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["meetingId", "task", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/meetings/{meetingId}": {
+      "schema": "Meeting",
+      "description": "Meeting logs and analysis"
+    },
+    "/actionItems/{itemId}": {
+      "schema": "ActionItem",
+      "description": "Extracted action items"
+    }
+  }
+}

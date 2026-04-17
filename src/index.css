@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Apple SD Gothic Neo", "Pretendard", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+:root {
+  --bg: #F8FAFC;
+  --sidebar: #FFFFFF;
+  --primary: #4F46E5;
+  --primary-light: #EEF2FF;
+  --text-main: #1E293B;
+  --text-sub: #64748B;
+  --border: #E2E8F0;
+  --accent-red: #EF4444;
+  --accent-green: #10B981;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+}
+
+.sleek-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sleek-card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sleek-btn-primary {
+  background: var(--primary);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  transition: transform 0.1s ease, opacity 0.2s ease;
+}
+
+.sleek-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.sleek-badge {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.feedback-bubble {
+  background: #F1F5F9;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  border-left: 4px solid var(--primary);
+}
+
+.history-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #FFF7ED;
+  color: #C2410C;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #FFEDD5;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+@keyframes pulse-red {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.recording-pulse {
+  animation: pulse-red 2s infinite;
+}
+
+

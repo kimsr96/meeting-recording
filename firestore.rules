@@ -1,0 +1,122 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Fields:
+//   - uid: string (required)
+//   - email: string (required, email format)
+//   - displayName: string
+//   - photoURL: string (url format)
+//   - role: string (admin|manager|staff)
+//   - createdAt: timestamp
+//
+// Collection: meetings
+// Fields:
+//   - title: string (required)
+//   - date: timestamp (required)
+//   - duration: number
+//   - transcript: list of maps {speaker: string, text: string, timestamp: number}
+//   - summary: string
+//   - insights: map {customerFeedback: string, decisions: list, actionItems: list}
+//   - createdBy: string (required, UID)
+//   - status: string (recording|analyzing|completed)
+//
+// Collection: actionItems
+// Fields:
+//   - meetingId: string (required)
+//   - task: string (required)
+//   - assignee: string
+//   - dueDate: string
+//   - status: string (pending|in-progress|completed)
+//   - createdBy: string (UID)
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "kimsr960@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    // ===============================================================
+    // Entity Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.uid is string &&
+             isValidEmail(data.email) &&
+             (data.role in ['admin', 'manager', 'staff']) &&
+             data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'role', 'createdAt']);
+    }
+
+    function isValidMeeting(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.date is timestamp &&
+             data.createdBy == request.auth.uid &&
+             (data.status in ['recording', 'analyzing', 'completed']) &&
+             data.keys().hasAll(['title', 'date', 'createdBy', 'status']);
+    }
+
+    function isValidActionItem(data) {
+      return data.meetingId is string &&
+             data.task is string && data.task.size() > 0 && data.task.size() < 500 &&
+             (data.status in ['pending', 'in-progress', 'completed']) &&
+             data.keys().hasAll(['meetingId', 'task', 'status']);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(uid) && isValidUser(request.resource.data) && request.resource.data.role != 'admin';
+      allow update: if (isOwner(uid) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /meetings/{meetingId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidMeeting(request.resource.data);
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.createdBy || isAdmin());
+      allow delete: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.createdBy);
+    }
+
+    match /actionItems/{itemId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidActionItem(request.resource.data);
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.createdBy || isAdmin());
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
