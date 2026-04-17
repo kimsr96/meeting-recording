@@ -1,18 +1,17 @@
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { loginWithGoogle, db } from './lib/firebase';
+import { db } from './lib/firebase';
 import { MeetingRecorder } from './components/MeetingRecorder';
 import { analyzeMeeting } from './lib/gemini';
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { Meeting, TranscriptPart } from './types';
 import { 
-  LayoutDashboard, 
-  Mic, 
-  Settings, 
-  User as UserIcon, 
-  BarChart3, 
-  Plus, 
-  History, 
+  LayoutDashboard,
+  Mic,
+  Settings,
+  BarChart3,
+  Plus,
+  History,
   ClipboardList,
   Sparkles,
   Search,
@@ -182,7 +181,7 @@ function InsightDashboard({ meetings, onStartMeeting }: { meetings: Meeting[], o
 
 
 function MainContent() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
@@ -198,35 +197,6 @@ function MainContent() {
     });
     return () => unsubscribe();
   }, [user]);
-
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-[var(--bg)]">
-        <Loader2 className="animate-spin text-[var(--primary)]" size={40} />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-[var(--bg)] p-4 text-center">
-        <div className="max-w-md w-full bg-white border border-[var(--border)] rounded-3xl p-10 shadow-xl">
-          <div className="bg-[var(--primary)] w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3">
-             <BarChart3 className="text-white" size={32} />
-          </div>
-          <h1 className="text-4xl font-black mb-2 tracking-tight text-[var(--text-main)]">F&B Insight</h1>
-          <p className="text-[var(--text-sub)] mb-8">외식 매장 및 마케팅 회의 인사이트 자동화</p>
-          <button 
-            onClick={loginWithGoogle}
-            className="w-full bg-[var(--text-main)] text-white font-bold py-4 rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-3"
-          >
-            <UserIcon size={20} />
-            GOOGLE 계정으로 시작
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const handleFinishMeeting = async (transcript: TranscriptPart[]) => {
     if (transcript.length === 0) return;

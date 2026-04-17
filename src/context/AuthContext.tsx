@@ -1,55 +1,33 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth, db } from '../lib/firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import React, { createContext, useContext } from 'react';
 import { UserProfile } from '../types';
 
+const GUEST_USER = {
+  uid: 'guest-user',
+  email: 'guest@fb-insight.com',
+  displayName: '게스트',
+  photoURL: '',
+} as any;
+
+const GUEST_PROFILE: UserProfile = {
+  uid: 'guest-user',
+  email: 'guest@fb-insight.com',
+  displayName: '게스트',
+  photoURL: '',
+  role: 'staff',
+  createdAt: null as any,
+};
+
 interface AuthContextType {
-  user: User | null;
-  profile: UserProfile | null;
+  user: typeof GUEST_USER;
+  profile: UserProfile;
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, profile: null, loading: true });
+const AuthContext = createContext<AuthContextType>({ user: GUEST_USER, profile: GUEST_PROFILE, loading: false });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      
-      if (firebaseUser) {
-        const userRef = doc(db, 'users', firebaseUser.uid);
-        const userSnap = await getDoc(userRef);
-        
-        if (userSnap.exists()) {
-          setProfile(userSnap.data() as UserProfile);
-        } else {
-          const newProfile: Partial<UserProfile> = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            displayName: firebaseUser.displayName || '',
-            photoURL: firebaseUser.photoURL || '',
-            role: 'staff',
-            createdAt: serverTimestamp() as any
-          };
-          await setDoc(userRef, newProfile);
-          setProfile(newProfile as UserProfile);
-        }
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   return (
-    <AuthContext.Provider value={{ user, profile, loading }}>
+    <AuthContext.Provider value={{ user: GUEST_USER, profile: GUEST_PROFILE, loading: false }}>
       {children}
     </AuthContext.Provider>
   );
